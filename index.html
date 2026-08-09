@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gastos XPRO33</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0f1117">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="XPRO33">
+  <link rel="apple-touch-icon" href="icon-192.png">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg:#0f1117;--surface:#1a1d27;--surface2:#22263a;--border:#2e3350;
+    --accent:#4f7cff;--accent2:#7c4fff;--green:#2ecc71;--red:#e74c3c;
+    --yellow:#f1c40f;--text:#e8eaf0;--text2:#8b90a8;--text3:#555c7a;
+    --radius:12px;--radius-sm:8px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding-bottom:40px}
+  header{background:linear-gradient(135deg,#1a1d27,#0f1117);border-bottom:1px solid var(--border);padding:16px 20px;position:sticky;top:0;z-index:100;display:flex;align-items:center;justify-content:space-between;gap:12px}
+  .logo{font-size:18px;font-weight:800;letter-spacing:-0.5px;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+  .week-badge{font-size:12px;background:var(--surface2);border:1px solid var(--border);color:var(--text2);padding:4px 10px;border-radius:20px;cursor:pointer;white-space:nowrap}
+  .tabs{display:flex;background:var(--surface);border-bottom:1px solid var(--border);padding:0 16px;overflow-x:auto;scrollbar-width:none}
+  .tabs::-webkit-scrollbar{display:none}
+  .tab{padding:12px 16px;font-size:13px;font-weight:600;color:var(--text3);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;transition:all .2s}
+  .tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+  .page{display:none;padding:16px}.page.active{display:block}
+  .week-selector{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:16px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .week-selector label{font-size:12px;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+  .week-selector input[type="date"]{background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:6px 10px;border-radius:var(--radius-sm);font-size:13px;flex:1;min-width:130px}
+  .form-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:16px}
+  .form-card h3{font-size:14px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.8px;margin-bottom:14px}
+  .form-row{display:flex;gap:10px;margin-bottom:10px;flex-wrap:wrap}
+  .form-group{display:flex;flex-direction:column;gap:5px;flex:1;min-width:130px}
+  .form-group label{font-size:11px;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+  input,select,textarea{background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:10px 12px;border-radius:var(--radius-sm);font-size:14px;font-family:inherit;transition:border-color .2s;width:100%}
+  input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent)}
+  textarea{resize:vertical;min-height:90px}
+  .btn{padding:11px 20px;border-radius:var(--radius-sm);font-size:14px;font-weight:700;cursor:pointer;border:none;transition:all .2s;display:inline-flex;align-items:center;gap:6px}
+  .btn-primary{background:linear-gradient(135deg,var(--accent),var(--accent2));color:white;width:100%;justify-content:center}
+  .btn-primary:hover{opacity:.9;transform:translateY(-1px)}
+  .btn-ghost{background:transparent;color:var(--text2);border:1px solid var(--border);font-size:12px;padding:6px 12px}
+  .btn-danger{background:transparent;color:var(--red);border:none;padding:4px 8px;font-size:18px;cursor:pointer}
+  .btn-pdf{background:linear-gradient(135deg,#c0392b,#922b21);color:white;width:100%;justify-content:center}
+  .items-list{margin-top:12px}
+  .item-row{display:flex;align-items:center;gap:8px;padding:10px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);margin-bottom:6px;animation:slideIn .2s ease}
+  @keyframes slideIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+  .item-cat-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+  .item-info{flex:1;min-width:0}
+  .item-desc{font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .item-cat-label{font-size:11px;color:var(--text3);margin-top:1px}
+  .item-val{font-size:14px;font-weight:700;color:var(--green);flex-shrink:0}
+  .total-bar{position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:1px solid var(--border);padding:12px 16px;display:flex;justify-content:space-between;align-items:center;z-index:100}
+  .total-label{font-size:12px;color:var(--text2);font-weight:600}
+  .total-value{font-size:20px;font-weight:800;color:var(--accent)}
+  .cards-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+  .summary-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px}
+  .summary-card .s-label{font-size:11px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+  .summary-card .s-value{font-size:18px;font-weight:800;color:var(--text)}
+  .summary-card .s-sub{font-size:11px;color:var(--text3);margin-top:3px}
+  .cat-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)}
+  .cat-row:last-child{border-bottom:none}
+  .cat-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+  .cat-name{flex:1;font-size:13px;color:var(--text2)}
+  .cat-val{font-size:13px;font-weight:700;color:var(--text)}
+  .cat-pct{font-size:11px;color:var(--text3);margin-left:8px;min-width:36px;text-align:right}
+  .cat-bar-wrap{width:100%;height:3px;background:var(--surface2);border-radius:2px;margin-top:4px}
+  .cat-bar{height:3px;border-radius:2px;transition:width .4s ease}
+  .history-week{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:10px;cursor:pointer}
+  .history-week-header{display:flex;justify-content:space-between;align-items:center}
+  .history-week-label{font-size:14px;font-weight:700;color:var(--text)}
+  .history-week-total{font-size:15px;font-weight:800;color:var(--accent)}
+  .history-week-items{display:none;margin-top:12px;padding-top:12px;border-top:1px solid var(--border)}
+  .history-week.open .history-week-items{display:block}
+  .chevron{color:var(--text3);font-size:12px;transition:transform .2s;margin-left:8px}
+  .history-week.open .chevron{transform:rotate(180deg)}
+  .export-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:12px;text-align:center}
+  .export-card .e-icon{font-size:32px;margin-bottom:8px}
+  .export-card .e-title{font-size:15px;font-weight:700;margin-bottom:4px}
+  .export-card .e-desc{font-size:12px;color:var(--text2);margin-bottom:14px}
+  .toast{position:fixed;top:70px;left:50%;transform:translateX(-50%) translateY(-20px);background:var(--green);color:white;padding:10px 20px;border-radius:20px;font-size:13px;font-weight:700;opacity:0;transition:all .3s;z-index:200;pointer-events:none;white-space:nowrap}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:150;display:none;align-items:flex-end}
+  .modal-overlay.open{display:flex}
+  .modal{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius) var(--radius) 0 0;padding:20px;width:100%;max-height:80vh;overflow-y:auto}
+  .modal h3{font-size:16px;font-weight:800;margin-bottom:16px;color:var(--text)}
+  .section-title{font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;margin-top:4px}
+  .empty{text-align:center;padding:40px 20px;color:var(--text3)}
+  .empty .e{font-size:40px;margin-bottom:10px}
+  .empty p{font-size:14px}
+  .chart-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:16px}
+  .chart-wrap h3{font-size:13px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.8px;margin-bottom:14px}
+  .pb80{padding-bottom:80px}
+  select option{background:#1a1d27}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">XPRO33</div>
+  <div class="week-badge" onclick="openWeekModal()">📅 <span id="currentWeekLabel">Semana atual</span></div>
+</header>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab('lancamento',this)">➕ Lançar</div>
+  <div class="tab" onclick="switchTab('resumo',this)">📊 Resumo</div>
+  <div class="tab" onclick="switchTab('historico',this)">📋 Histórico</div>
+  <div class="tab" onclick="switchTab('exportar',this)">📤 Exportar</div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- LANÇAMENTO -->
+<div class="page active pb80" id="page-lancamento">
+  <div class="week-selector">
+    <label>Semana:</label>
+    <input type="date" id="weekStart" onchange="updateWeekLabel()">
+    <span style="color:var(--text3);font-size:13px">até</span>
+    <input type="date" id="weekEnd" onchange="updateWeekLabel()">
+  </div>
+  <div class="form-card">
+    <h3>Novo Gasto</h3>
+    <div class="form-row">
+      <div class="form-group" style="flex:2;min-width:200px">
+        <label>Descrição</label>
+        <input type="text" id="desc" placeholder="Ex: Combustível, Água..."/>
+      </div>
+      <div class="form-group" style="min-width:120px">
+        <label>Valor (R$)</label>
+        <input type="number" id="valor" placeholder="0,00" step="0.01" min="0"/>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Categoria</label>
+        <select id="categoria">
+          <option value="Combustível">⛽ Combustível</option>
+          <option value="Água / Higiene">💧 Água / Higiene</option>
+          <option value="Limpeza / Utilidades">🧴 Limpeza / Utilidades</option>
+          <option value="EPI / Segurança">🧤 EPI / Segurança</option>
+          <option value="Veículo / Manutenção">🚗 Veículo / Manutenção</option>
+          <option value="Elétrica / Obra">⚡ Elétrica / Obra</option>
+          <option value="Equipamentos / Instalações">🔩 Equipamentos / Instalações</option>
+          <option value="Manutenção / Máquinas">🔧 Manutenção / Máquinas</option>
+          <option value="Frete / Transporte">🚛 Frete / Transporte</option>
+          <option value="Matéria-Prima / Embalagens">📦 Matéria-Prima / Embalagens</option>
+          <option value="Sal">🧂 Sal</option>
+          <option value="Caminhão Pipa">🚛 Caminhão Pipa</option>
+          <option value="Serviços / Contas">🏢 Serviços / Contas</option>
+          <option value="Marketing">📣 Marketing</option>
+          <option value="Outros">📌 Outros</option>
+        </select>
+      </div>
+    </div>
+    <button class="btn btn-primary" onclick="addItem()">➕ Adicionar Gasto</button>
+  </div>
+  <div id="items-container">
+    <div class="section-title">Lançamentos da semana</div>
+    <div id="items-list" class="items-list"></div>
+  </div>
+</div>
+
+<!-- RESUMO -->
+<div class="page pb80" id="page-resumo">
+  <div class="cards-grid">
+    <div class="summary-card"><div class="s-label">Total da Semana</div><div class="s-value" id="sum-total">R$ 0,00</div><div class="s-sub" id="sum-week-label">—</div></div>
+    <div class="summary-card"><div class="s-label">Nº de Lançamentos</div><div class="s-value" id="sum-count">0</div><div class="s-sub">itens registrados</div></div>
+    <div class="summary-card"><div class="s-label">Maior Gasto</div><div class="s-value" id="sum-max">R$ 0,00</div><div class="s-sub" id="sum-max-desc">—</div></div>
+    <div class="summary-card"><div class="s-label">Categorias</div><div class="s-value" id="sum-cats">0</div><div class="s-sub">categorias distintas</div></div>
+  </div>
+  <div class="chart-wrap">
+    <h3>Gastos por Categoria</h3>
+    <canvas id="chartCat" height="220"></canvas>
+  </div>
+  <div class="chart-wrap">
+    <h3>Distribuição % por Categoria</h3>
+    <canvas id="chartPie" height="220"></canvas>
+  </div>
+  <div class="form-card">
+    <h3>Detalhe por Categoria</h3>
+    <div id="cat-summary"></div>
+  </div>
+</div>
+
+const HISTORICO={"weeks": {"2026-05-03_2026-05-09": [{"id": 1746230744014, "desc": "Combust\u00edvel", "valor": 200, "cat": "Combust\u00edvel", "ts": "2026-05-03T12:00:00.000Z"}, {"id": 1746231002437, "desc": "Combust\u00edvel", "valor": 200, "cat": "Combust\u00edvel", "ts": "2026-05-03T12:00:00.000Z"}, {"id": 1746230653595, "desc": "Combust\u00edvel Gil", "valor": 200, "cat": "Combust\u00edvel", "ts": "2026-05-03T12:00:00.000Z"}, {"id": 1746231070698, "desc": "Combust\u00edvel Fernando", "valor": 200, "cat": "Combust\u00edvel", "ts": "2026-05-03T12:00:00.000Z"}, {"id": 1746231231303, "desc": "Combust\u00edvel Ricardo", "valor": 200, "cat": "Combust\u00edvel", "ts": "2026-05-03T12:00:00.000Z"}, {"id": 1746231217306, "desc": "Roda do carrinho", "valor": 280, "cat": "Ve\u00edculo / Manuten\u00e7\u00e3o", "ts": "2026-05-03T12:00:00.000Z"}, {"id": 1746230853887, "desc": "Lava jato", "valor": 336.9, "cat": "Ve\u00edculo / Manuten\u00e7\u00e3o", "ts": "2026-05-03T12:00:00.000Z"}, {"id": 1746230665509, "desc": "\u00d3leo Van", "valor": 30, "cat": "Ve\u00edculo / Manuten\u00e7\u00e3o", "ts": "2026-05-03T12:00:00.000Z"}, {"id": 1746230443340, "desc": "Carrinho armaz\u00e9m", "valor": 363.76, "cat": "Frete / Transporte", "ts": "2026-05-03T12:00:00.000Z"}, {"id": 1746230913855, "desc": "Lalamove", "valor": 176, "cat": "Frete / Transporte", "ts": "2026-05-03T12:00:00.000Z"}, {"id": 1746230498742, "desc": "Extens\u00e3o e \u00e1gua", "valor": 68, "cat": "Outros", "ts": "2026-05-03T12:00:00.000Z"}, {"id": 1746230733029, "desc": "\u00c1gua", "valor": 38, "cat": "Outros", "ts": "2026-05-03T12:00:00.000Z"}, {"id": 1746230764880, "desc": "Papel higi\u00eanico", "valor": 30, "cat": "Outros", "ts": "2026-05-03T12:00:00.000Z"}, {"id": 1746230901447, "desc": "Corante azul", "valor": 156, "cat": "Outros", "ts": "2026-05-03T12:00:00.000Z"}, {"id": 1746230545685, "desc": "Lixeiro", "valor": 50, "cat": "Outros", "ts": "2026-05-03T12:00:00.000Z"}], "2026-05-10_2026-05-16": [{"id": 1746230873387, "desc": "\u00c1gua SJM", "valor": 15, "cat": "\u00c1gua / Higiene", "ts": "2026-05-10T12:00:00.000Z"}, {"id": 1746230604038, "desc": "\u00c1gua Caxias", "valor": 15, "cat": "\u00c1gua / Higiene", "ts": "2026-05-10T12:00:00.000Z"}, {"id": 1746230987759, "desc": "Papel higi\u00eanico", "valor": 9.98, "cat": "\u00c1gua / Higiene", "ts": "2026-05-10T12:00:00.000Z"}, {"id": 1746231069901, "desc": "Papel higi\u00eanico e \u00e1gua", "valor": 43.65, "cat": "\u00c1gua / Higiene", "ts": "2026-05-10T12:00:00.000Z"}, {"id": 1746230588173, "desc": "Material de limpeza", "valor": 25, "cat": "Limpeza / Utilidades", "ts": "2026-05-10T12:00:00.000Z"}, {"id": 1746230841645, "desc": "Prod. de limpeza", "valor": 46.4, "cat": "Limpeza / Utilidades", "ts": "2026-05-10T12:00:00.000Z"}, {"id": 1746231173003, "desc": "Conserto Van \u2014 pe\u00e7as", "valor": 250, "cat": "Ve\u00edculo / Manuten\u00e7\u00e3o", "ts": "2026-05-10T12:00:00.000Z"}, {"id": 1746230866086, "desc": "Conserto el\u00e9trico", "valor": 270, "cat": "Ve\u00edculo / Manuten\u00e7\u00e3o", "ts": "2026-05-10T12:00:00.000Z"}, {"id": 1746230646105, "desc": "Borracheiro", "valor": 20, "cat": "Ve\u00edculo / Manuten\u00e7\u00e3o", "ts": "2026-05-10T12:00:00.000Z"}, {"id": 1746230678718, "desc": "\u00d3leo Van", "valor": 30, "cat": "Ve\u00edculo / Manuten\u00e7\u00e3o", "ts": "2026-05-10T12:00:00.000Z"}, {"id": 1746230433422, "desc": "Roda do carrinho (2\u00aa)", "valor": 170, "cat": "Ve\u00edculo / Manuten\u00e7\u00e3o", "ts": "2026-05-10T12:00:00.000Z"}, {"id": 1746230635270, "desc": "Mangueira 5m", "valor": 115, "cat": "Equipamentos / Instala\u00e7\u00f5es", "ts": "2026-05-10T12:00:00.000Z"}, {"id": 1746231106304, "desc": "Arm\u00e1rios para etiqueta", "valor": 520, "cat": "Equipamentos / Instala\u00e7\u00f5es", "ts": "2026-05-10T12:00:00.000Z"}, {"id": 1746231121270, "desc": "Cadeados", "valor": 130, "cat": "Equipamentos / Instala\u00e7\u00f5es", "ts": "2026-05-10T12:00:00.000Z"}, {"id": 1746230469700, "desc": "Light", "valor": 50, "cat": "Equipamentos / Instala\u00e7\u00f5es", "ts": "2026-05-10T12:00:00.000Z"}, {"id": 1746230736409, "desc": "Pe\u00e7a para m\u00e1quina", "valor": 18.6, "cat": "Equipamentos / Instala\u00e7\u00f5es", "ts": "2026-05-10T12:00:00.000Z"}, {"id": 1746231338311, "desc": "Conex\u00e3o bomba de transfer\u00eancia", "valor": 24, "cat": "Equipamentos / Instala\u00e7\u00f5es", "ts": "2026-05-10T12:00:00.000Z"}, {"id": 1746230785537, "desc": "Conex\u00e3o m\u00e1quina nova", "valor": 26.4, "cat": "Equipamentos / Instala\u00e7\u00f5es", "ts": "2026-05-10T12:00:00.000Z"}, {"id": 1746231424120, "desc": "Tomada", "valor": 4, "cat": "Equipamentos / Instala\u00e7\u00f5es", "ts": "2026-05-10T12:00:00.000Z"}, {"id": 225067, "desc": "Outros materiais", "valor": 49.97, "cat": "Outros", "ts": "2026-05-10T12:00:00.000Z"}], "2026-05-17_2026-05-23": [{"id": 1746230454325, "desc": "\u00c1gua", "valor": 20, "cat": "\u00c1gua / Higiene", "ts": "2026-05-17T12:00:00.000Z"}, {"id": 1746230779907, "desc": "\u00c1gua", "valor": 13, "cat": "\u00c1gua / Higiene", "ts": "2026-05-17T12:00:00.000Z"}, {"id": 1746231121090, "desc": "Itens diversos limpeza e \u00e1gua", "valor": 50, "cat": "\u00c1gua / Higiene", "ts": "2026-05-17T12:00:00.000Z"}, {"id": 1746230842176, "desc": "Lixo", "valor": 50, "cat": "Limpeza / Utilidades", "ts": "2026-05-17T12:00:00.000Z"}, {"id": 1746231074561, "desc": "Balde (x2)", "valor": 56, "cat": "Limpeza / Utilidades", "ts": "2026-05-17T12:00:00.000Z"}, {"id": 1746230795989, "desc": "Pincel", "valor": 16, "cat": "Limpeza / Utilidades", "ts": "2026-05-17T12:00:00.000Z"}, {"id": 1746231109436, "desc": "MOP", "valor": 297, "cat": "Limpeza / Utilidades", "ts": "2026-05-17T12:00:00.000Z"}, {"id": 1746230919374, "desc": "Pneu carrinho", "valor": 19.9, "cat": "Ve\u00edculo / Manuten\u00e7\u00e3o", "ts": "2026-05-17T12:00:00.000Z"}, {"id": 1746231269235, "desc": "Troca de refletores \u2014 instala\u00e7\u00e3o galp\u00e3o SJM", "valor": 720, "cat": "El\u00e9trica / Obra", "ts": "2026-05-17T12:00:00.000Z"}, {"id": 1746230562218, "desc": "Instala\u00e7\u00e3o chave magn\u00e9tica bomba", "valor": 250, "cat": "El\u00e9trica / Obra", "ts": "2026-05-17T12:00:00.000Z"}, {"id": 1746230761969, "desc": "Aluguel de andaime", "valor": 380, "cat": "El\u00e9trica / Obra", "ts": "2026-05-17T12:00:00.000Z"}, {"id": 1746231386566, "desc": "Combust\u00edvel (x4)", "valor": 800, "cat": "Combust\u00edvel", "ts": "2026-05-17T12:00:00.000Z"}, {"id": 1746230675495, "desc": "Chaveiro", "valor": 15, "cat": "Servi\u00e7os / Contas", "ts": "2026-05-17T12:00:00.000Z"}, {"id": 1746230842944, "desc": "Festa Dylon", "valor": 228, "cat": "Outros", "ts": "2026-05-17T12:00:00.000Z"}, {"id": 75530, "desc": "Coleta lixo e materiais", "valor": 201.25, "cat": "Limpeza / Utilidades", "ts": "2026-05-17T12:00:00.000Z"}], "2026-05-24_2026-05-30": [{"id": 1746230565392, "desc": "Combust\u00edvel (x5)", "valor": 1000, "cat": "Combust\u00edvel", "ts": "2026-05-24T12:00:00.000Z"}, {"id": 1746231227044, "desc": "\u00c1gua (x3)", "valor": 95.5, "cat": "\u00c1gua / Higiene", "ts": "2026-05-24T12:00:00.000Z"}, {"id": 1746230697627, "desc": "Papel higi\u00eanico", "valor": 11.37, "cat": "\u00c1gua / Higiene", "ts": "2026-05-24T12:00:00.000Z"}, {"id": 1746231419615, "desc": "Papel higi\u00eanico e \u00e1gua", "valor": 43.65, "cat": "\u00c1gua / Higiene", "ts": "2026-05-24T12:00:00.000Z"}, {"id": 1746230894438, "desc": "Lixo (x2)", "valor": 200, "cat": "Limpeza / Utilidades", "ts": "2026-05-24T12:00:00.000Z"}, {"id": 1746230469342, "desc": "Paleteira", "valor": 1100, "cat": "Equipamentos / Instala\u00e7\u00f5es", "ts": "2026-05-24T12:00:00.000Z"}, {"id": 1746230645096, "desc": "Tampa branca terapia", "valor": 600, "cat": "Equipamentos / Instala\u00e7\u00f5es", "ts": "2026-05-24T12:00:00.000Z"}, {"id": 1746231008224, "desc": "EPI \u2014 \u00f3culos, mangote, prot. auricular", "valor": 194.84, "cat": "EPI / Seguran\u00e7a", "ts": "2026-05-24T12:00:00.000Z"}, {"id": 1746231365876, "desc": "Conex\u00e3o ar comprimido", "valor": 65, "cat": "Equipamentos / Instala\u00e7\u00f5es", "ts": "2026-05-24T12:00:00.000Z"}, {"id": 1746230881787, "desc": "Quadro de avisos", "valor": 150, "cat": "Equipamentos / Instala\u00e7\u00f5es", "ts": "2026-05-24T12:00:00.000Z"}, {"id": 1746230918771, "desc": "Cadeado Bongo", "valor": 94.9, "cat": "Equipamentos / Instala\u00e7\u00f5es", "ts": "2026-05-24T12:00:00.000Z"}, {"id": 1746230503307, "desc": "Luvas", "valor": 227, "cat": "EPI / Seguran\u00e7a", "ts": "2026-05-24T12:00:00.000Z"}, {"id": 1746230974556, "desc": "M\u00e1scara", "valor": 210, "cat": "EPI / Seguran\u00e7a", "ts": "2026-05-24T12:00:00.000Z"}, {"id": 1746231374377, "desc": "Luvas P", "valor": 51, "cat": "EPI / Seguran\u00e7a", "ts": "2026-05-24T12:00:00.000Z"}, {"id": 1746230735183, "desc": "Protetor auricular", "valor": 70, "cat": "EPI / Seguran\u00e7a", "ts": "2026-05-24T12:00:00.000Z"}, {"id": 1746231295627, "desc": "2000 Luvas M", "valor": 352, "cat": "EPI / Seguran\u00e7a", "ts": "2026-05-24T12:00:00.000Z"}, {"id": 1746230893688, "desc": "Extintores 50%", "valor": 552, "cat": "EPI / Seguran\u00e7a", "ts": "2026-05-24T12:00:00.000Z"}, {"id": 1746231300720, "desc": "Roda do carrinho", "valor": 240, "cat": "Ve\u00edculo / Manuten\u00e7\u00e3o", "ts": "2026-05-24T12:00:00.000Z"}, {"id": 1746230606923, "desc": "Conserto Honda Fit", "valor": 820, "cat": "Ve\u00edculo / Manuten\u00e7\u00e3o", "ts": "2026-05-24T12:00:00.000Z"}, {"id": 1746230622243, "desc": "Conserto Van pe\u00e7as", "valor": 250, "cat": "Ve\u00edculo / Manuten\u00e7\u00e3o", "ts": "2026-05-24T12:00:00.000Z"}, {"id": 1746230868446, "desc": "\u00d3leo Van", "valor": 8.58, "cat": "Ve\u00edculo / Manuten\u00e7\u00e3o", "ts": "2026-05-24T12:00:00.000Z"}, {"id": 1746231011903, "desc": "Sal semana atual", "valor": 1160, "cat": "Sal", "ts": "2026-05-24T12:00:00.000Z"}, {"id": 1746230890420, "desc": "Sal semana anterior", "valor": 580, "cat": "Sal", "ts": "2026-05-24T12:00:00.000Z"}, {"id": 1746231258354, "desc": "Festa Dylon", "valor": 68.9, "cat": "Outros", "ts": "2026-05-24T12:00:00.000Z"}], "2026-05-31_2026-06-06": [{"id": 1746230842488, "desc": "Combust\u00edvel (x5)", "valor": 900, "cat": "Combust\u00edvel", "ts": "2026-05-31T12:00:00.000Z"}, {"id": 1746231154796, "desc": "\u00c1gua (x2)", "valor": 83, "cat": "\u00c1gua / Higiene", "ts": "2026-05-31T12:00:00.000Z"}, {"id": 1746231069016, "desc": "Lixo (x2)", "valor": 150, "cat": "Limpeza / Utilidades", "ts": "2026-05-31T12:00:00.000Z"}, {"id": 1746231212787, "desc": "Balde (x2)", "valor": 56, "cat": "Limpeza / Utilidades", "ts": "2026-05-31T12:00:00.000Z"}, {"id": 1746230787607, "desc": "Pincel", "valor": 16, "cat": "Limpeza / Utilidades", "ts": "2026-05-31T12:00:00.000Z"}, {"id": 1746230895899, "desc": "Luvas", "valor": 227, "cat": "EPI / Seguran\u00e7a", "ts": "2026-05-31T12:00:00.000Z"}, {"id": 1746231245287, "desc": "M\u00e1scara", "valor": 210, "cat": "EPI / Seguran\u00e7a", "ts": "2026-05-31T12:00:00.000Z"}, {"id": 1746230746837, "desc": "Luvas P", "valor": 51, "cat": "EPI / Seguran\u00e7a", "ts": "2026-05-31T12:00:00.000Z"}, {"id": 1746231280406, "desc": "Protetor auricular", "valor": 70, "cat": "EPI / Seguran\u00e7a", "ts": "2026-05-31T12:00:00.000Z"}, {"id": 1746231359955, "desc": "2000 Luvas M", "valor": 352, "cat": "EPI / Seguran\u00e7a", "ts": "2026-05-31T12:00:00.000Z"}, {"id": 1746230570532, "desc": "Extintores", "valor": 552, "cat": "EPI / Seguran\u00e7a", "ts": "2026-05-31T12:00:00.000Z"}, {"id": 1746231126308, "desc": "\u00d3leo Van", "valor": 8.58, "cat": "Ve\u00edculo / Manuten\u00e7\u00e3o", "ts": "2026-05-31T12:00:00.000Z"}, {"id": 1746230579963, "desc": "Conserto Honda Fit", "valor": 820, "cat": "Ve\u00edculo / Manuten\u00e7\u00e3o", "ts": "2026-05-31T12:00:00.000Z"}, {"id": 1746230586278, "desc": "Conserto Van pe\u00e7as", "valor": 250, "cat": "Ve\u00edculo / Manuten\u00e7\u00e3o", "ts": "2026-05-31T12:00:00.000Z"}, {"id": 1746231074947, "desc": "Roda do carrinho", "valor": 240, "cat": "Ve\u00edculo / Manuten\u00e7\u00e3o", "ts": "2026-05-31T12:00:00.000Z"}, {"id": 1746230603141, "desc": "\u00d3leo compressor Caxias", "valor": 201.39, "cat": "Ve\u00edculo / Manuten\u00e7\u00e3o", "ts": "2026-05-31T12:00:00.000Z"}, {"id": 1746231110295, "desc": "Fios para misturador novo", "valor": 2466.2, "cat": "Equipamentos / Instala\u00e7\u00f5es", "ts": "2026-05-31T12:00:00.000Z"}, {"id": 1746231039327, "desc": "Conex\u00f5es ar comprimido Y", "valor": 152, "cat": "Equipamentos / Instala\u00e7\u00f5es", "ts": "2026-05-31T12:00:00.000Z"}, {"id": 1746231448979, "desc": "Conex\u00f5es hidr\u00e1ulicas m\u00e1q. e misturador", "valor": 670, "cat": "Equipamentos / Instala\u00e7\u00f5es", "ts": "2026-05-31T12:00:00.000Z"}, {"id": 1746230615006, "desc": "Conex\u00f5es ar comprimido v\u00e1lvulas e emendas", "valor": 390, "cat": "Equipamentos / Instala\u00e7\u00f5es", "ts": "2026-05-31T12:00:00.000Z"}, {"id": 1746231197489, "desc": "Materiais el\u00e9tricos", "valor": 1234.79, "cat": "Equipamentos / Instala\u00e7\u00f5es", "ts": "2026-05-31T12:00:00.000Z"}, {"id": 1746231356371, "desc": "Materiais el\u00e9tricos", "valor": 4932.4, "cat": "Equipamentos / Instala\u00e7\u00f5es", "ts": "2026-05-31T12:00:00.000Z"}, {"id": 1746230786044, "desc": "Fita adesiva", "valor": 32, "cat": "Equipamentos / Instala\u00e7\u00f5es", "ts": "2026-05-31T12:00:00.000Z"}, {"id": 1746231327919, "desc": "Instala\u00e7\u00e3o misturador e conserto compressor", "valor": 1689, "cat": "Equipamentos / Instala\u00e7\u00f5es", "ts": "2026-05-31T12:00:00.000Z"}, {"id": 1746230891378, "desc": "Festa Dylon", "valor": 228, "cat": "Outros", "ts": "2026-05-31T12:00:00.000Z"}, {"id": 553457, "desc": "Material complementar", "valor": 93.03, "cat": "Equipamentos / Instala\u00e7\u00f5es", "ts": "2026-05-31T12:00:00.000Z"}], "2026-06-07_2026-06-13": [{"id": 1746230682083, "desc": "Combust\u00edvel (x6)", "valor": 1200, "cat": "Combust\u00edvel", "ts": "2026-06-07T12:00:00.000Z"}, {"id": 1746231413399, "desc": "\u00c1gua (x3)", "valor": 93.72, "cat": "\u00c1gua / Higiene", "ts": "2026-06-07T12:00:00.000Z"}, {"id": 1746230583458, "desc": "Papel higi\u00eanico", "valor": 9.98, "cat": "\u00c1gua / Higiene", "ts": "2026-06-07T12:00:00.000Z"}, {"id": 1746231112350, "desc": "Papel higi\u00eanico e mat. limpeza", "valor": 40.72, "cat": "\u00c1gua / Higiene", "ts": "2026-06-07T12:00:00.000Z"}, {"id": 1746230877791, "desc": "Lixo", "valor": 50, "cat": "Limpeza / Utilidades", "ts": "2026-06-07T12:00:00.000Z"}, {"id": 1746230521180, "desc": "Lixeiro SJM", "valor": 100, "cat": "Limpeza / Utilidades", "ts": "2026-06-07T12:00:00.000Z"}, {"id": 1746231421974, "desc": "MOP", "valor": 297, "cat": "Limpeza / Utilidades", "ts": "2026-06-07T12:00:00.000Z"}, {"id": 1746231069978, "desc": "Pano", "valor": 46, "cat": "Limpeza / Utilidades", "ts": "2026-06-07T12:00:00.000Z"}, {"id": 1746231099928, "desc": "Mangotes e aventais", "valor": 468, "cat": "EPI / Seguran\u00e7a", "ts": "2026-06-07T12:00:00.000Z"}, {"id": 1746231083186, "desc": "Extintores", "valor": 200, "cat": "EPI / Seguran\u00e7a", "ts": "2026-06-07T12:00:00.000Z"}, {"id": 1746230524630, "desc": "M\u00e3o de obra conserto Van", "valor": 239, "cat": "Ve\u00edculo / Manuten\u00e7\u00e3o", "ts": "2026-06-07T12:00:00.000Z"}, {"id": 1746231165995, "desc": "\u00d3leo dire\u00e7\u00e3o Van", "valor": 30, "cat": "Ve\u00edculo / Manuten\u00e7\u00e3o", "ts": "2026-06-07T12:00:00.000Z"}, {"id": 1746231303551, "desc": "Materiais el\u00e9tricos Caxias", "valor": 260.73, "cat": "El\u00e9trica / Obra", "ts": "2026-06-07T12:00:00.000Z"}, {"id": 1746230534496, "desc": "Instala\u00e7\u00e3o 3 refletores com sensor", "valor": 210, "cat": "El\u00e9trica / Obra", "ts": "2026-06-07T12:00:00.000Z"}, {"id": 1746231249172, "desc": "Ponto tomada dupla 220V \u2014 envase", "valor": 45, "cat": "El\u00e9trica / Obra", "ts": "2026-06-07T12:00:00.000Z"}, {"id": 1746231330930, "desc": "Organizar fios", "valor": 200, "cat": "El\u00e9trica / Obra", "ts": "2026-06-07T12:00:00.000Z"}, {"id": 1746231433525, "desc": "Veda\u00e7\u00e3o da tampa", "valor": 500, "cat": "Equipamentos / Instala\u00e7\u00f5es", "ts": "2026-06-07T12:00:00.000Z"}, {"id": 1746230933335, "desc": "Mangueira ar comprimido", "valor": 145, "cat": "Equipamentos / Instala\u00e7\u00f5es", "ts": "2026-06-07T12:00:00.000Z"}, {"id": 1746231221817, "desc": "Extens\u00e3o", "valor": 36, "cat": "Equipamentos / Instala\u00e7\u00f5es", "ts": "2026-06-07T12:00:00.000Z"}, {"id": 1746231311135, "desc": "L\u00e2mpada", "valor": 8, "cat": "Equipamentos / Instala\u00e7\u00f5es", "ts": "2026-06-07T12:00:00.000Z"}, {"id": 1746231502542, "desc": "Placa sinaliza\u00e7\u00e3o", "valor": 30, "cat": "Equipamentos / Instala\u00e7\u00f5es", "ts": "2026-06-07T12:00:00.000Z"}, {"id": 1746230604146, "desc": "Sensor pneum\u00e1tico", "valor": 160, "cat": "Equipamentos / Instala\u00e7\u00f5es", "ts": "2026-06-07T12:00:00.000Z"}, {"id": 1746231298634, "desc": "V\u00e1lvula dupla solenoide", "valor": 330, "cat": "Equipamentos / Instala\u00e7\u00f5es", "ts": "2026-06-07T12:00:00.000Z"}, {"id": 1746231454958, "desc": "Reparo compressor", "valor": 350, "cat": "Equipamentos / Instala\u00e7\u00f5es", "ts": "2026-06-07T12:00:00.000Z"}, {"id": 1746230991912, "desc": "Conserto compressor Caxias", "valor": 790, "cat": "Equipamentos / Instala\u00e7\u00f5es", "ts": "2026-06-07T12:00:00.000Z"}, {"id": 1746231347196, "desc": "Tanque de inox", "valor": 1667, "cat": "Equipamentos / Instala\u00e7\u00f5es", "ts": "2026-06-07T12:00:00.000Z"}, {"id": 1746230697224, "desc": "Sal", "valor": 1160, "cat": "Sal", "ts": "2026-06-07T12:00:00.000Z"}, {"id": 1746230546467, "desc": "Pipa (x6 \u00d7 R$550)", "valor": 3289.3, "cat": "Caminh\u00e3o Pipa", "ts": "2026-06-07T12:00:00.000Z"}], "2026-06-14_2026-06-20": [{"id": 1746230706137, "desc": "Combust\u00edvel Honda Fit", "valor": 315.25, "cat": "Combust\u00edvel", "ts": "2026-06-14T12:00:00.000Z"}, {"id": 1746231393264, "desc": "Combust\u00edvel (x5)", "valor": 1000, "cat": "Combust\u00edvel", "ts": "2026-06-14T12:00:00.000Z"}, {"id": 1746231092758, "desc": "\u00c1gua (x4)", "valor": 95.5, "cat": "\u00c1gua / Higiene", "ts": "2026-06-14T12:00:00.000Z"}, {"id": 1746231447512, "desc": "Papel higi\u00eanico ML", "valor": 73, "cat": "\u00c1gua / Higiene", "ts": "2026-06-14T12:00:00.000Z"}, {"id": 1746230943242, "desc": "Papel higi\u00eanico", "valor": 9.98, "cat": "\u00c1gua / Higiene", "ts": "2026-06-14T12:00:00.000Z"}, {"id": 1746231315179, "desc": "Papel higi\u00eanico", "valor": 26, "cat": "\u00c1gua / Higiene", "ts": "2026-06-14T12:00:00.000Z"}, {"id": 1746230746596, "desc": "Lixo", "valor": 100, "cat": "Limpeza / Utilidades", "ts": "2026-06-14T12:00:00.000Z"}, {"id": 1746231072799, "desc": "Luvas descart\u00e1veis", "valor": 454, "cat": "EPI / Seguran\u00e7a", "ts": "2026-06-14T12:00:00.000Z"}, {"id": 1746230791827, "desc": "Extens\u00e3o el\u00e9trica", "valor": 28, "cat": "Equipamentos / Instala\u00e7\u00f5es", "ts": "2026-06-14T12:00:00.000Z"}, {"id": 1746231102506, "desc": "Pe\u00e7as para misturador", "valor": 1060, "cat": "Equipamentos / Instala\u00e7\u00f5es", "ts": "2026-06-14T12:00:00.000Z"}, {"id": 1746230603674, "desc": "V\u00e1lvula spray", "valor": 1650, "cat": "Equipamentos / Instala\u00e7\u00f5es", "ts": "2026-06-14T12:00:00.000Z"}, {"id": 1746231320819, "desc": "Uni\u00e3o 2\" para 1\u00bd\"", "valor": 40.89, "cat": "Equipamentos / Instala\u00e7\u00f5es", "ts": "2026-06-14T12:00:00.000Z"}, {"id": 1746230565312, "desc": "Bra\u00e7adeira", "valor": 39, "cat": "Equipamentos / Instala\u00e7\u00f5es", "ts": "2026-06-14T12:00:00.000Z"}, {"id": 1746230993343, "desc": "Manuten\u00e7\u00e3o do compressor", "valor": 1340, "cat": "Manuten\u00e7\u00e3o / M\u00e1quinas", "ts": "2026-06-14T12:00:00.000Z"}, {"id": 1746231512396, "desc": "Conserto m\u00e1quina envase", "valor": 500, "cat": "Manuten\u00e7\u00e3o / M\u00e1quinas", "ts": "2026-06-14T12:00:00.000Z"}, {"id": 1746231539335, "desc": "Conserto m\u00e1quina envase", "valor": 370, "cat": "Manuten\u00e7\u00e3o / M\u00e1quinas", "ts": "2026-06-14T12:00:00.000Z"}, {"id": 1746230623946, "desc": "Conserto caminh\u00e3o Gil", "valor": 810, "cat": "Ve\u00edculo / Manuten\u00e7\u00e3o", "ts": "2026-06-14T12:00:00.000Z"}, {"id": 1746230948756, "desc": "\u00d3leo caminh\u00e3o", "valor": 30, "cat": "Ve\u00edculo / Manuten\u00e7\u00e3o", "ts": "2026-06-14T12:00:00.000Z"}, {"id": 1746230708163, "desc": "Uber entrega", "valor": 16.5, "cat": "Frete / Transporte", "ts": "2026-06-14T12:00:00.000Z"}, {"id": 1746231190997, "desc": "Frasco Pac\u00edfico", "valor": 2640, "cat": "Mat\u00e9ria-Prima / Embalagens", "ts": "2026-06-14T12:00:00.000Z"}, {"id": 1746230560513, "desc": "Frasco Pac\u00edfico", "valor": 2640, "cat": "Mat\u00e9ria-Prima / Embalagens", "ts": "2026-06-14T12:00:00.000Z"}, {"id": 1746231517012, "desc": "Frasco sobrancelha", "valor": 650, "cat": "Mat\u00e9ria-Prima / Embalagens", "ts": "2026-06-14T12:00:00.000Z"}, {"id": 1746230852258, "desc": "Cestos", "valor": 9000, "cat": "Mat\u00e9ria-Prima / Embalagens", "ts": "2026-06-14T12:00:00.000Z"}, {"id": 1746230731915, "desc": "Pipa (x2 \u00d7 R$1.100)", "valor": 2200, "cat": "Caminh\u00e3o Pipa", "ts": "2026-06-14T12:00:00.000Z"}, {"id": 1746231508671, "desc": "Pipa", "valor": 2000, "cat": "Caminh\u00e3o Pipa", "ts": "2026-06-14T12:00:00.000Z"}], "2026-06-21_2026-06-27": [{"id": 1746230928107, "desc": "Combust\u00edvel (x4)", "valor": 800, "cat": "Combust\u00edvel", "ts": "2026-06-21T12:00:00.000Z"}, {"id": 1746231231440, "desc": "\u00c1gua", "valor": 30, "cat": "\u00c1gua / Higiene", "ts": "2026-06-21T12:00:00.000Z"}, {"id": 1746230992225, "desc": "Lixo", "valor": 50, "cat": "Limpeza / Utilidades", "ts": "2026-06-21T12:00:00.000Z"}, {"id": 1746230791513, "desc": "P\u00e1 de a\u00e7o", "valor": 60, "cat": "Limpeza / Utilidades", "ts": "2026-06-21T12:00:00.000Z"}, {"id": 1746230700823, "desc": "P\u00e1", "valor": 20, "cat": "Limpeza / Utilidades", "ts": "2026-06-21T12:00:00.000Z"}, {"id": 1746231020140, "desc": "Lixo SJM", "valor": 100, "cat": "Limpeza / Utilidades", "ts": "2026-06-21T12:00:00.000Z"}, {"id": 1746231502440, "desc": "Luvas", "valor": 683, "cat": "EPI / Seguran\u00e7a", "ts": "2026-06-21T12:00:00.000Z"}, {"id": 1746231550583, "desc": "\u00d3culos EPI", "valor": 140, "cat": "EPI / Seguran\u00e7a", "ts": "2026-06-21T12:00:00.000Z"}, {"id": 1746230810701, "desc": "\u00d3leo dire\u00e7\u00e3o Van", "valor": 28, "cat": "Ve\u00edculo / Manuten\u00e7\u00e3o", "ts": "2026-06-21T12:00:00.000Z"}, {"id": 1746231194955, "desc": "Compressor novo", "valor": 6900, "cat": "Equipamentos / Instala\u00e7\u00f5es", "ts": "2026-06-21T12:00:00.000Z"}, {"id": 1746230768611, "desc": "Mangueiras e conex\u00f5es", "valor": 2127.12, "cat": "Equipamentos / Instala\u00e7\u00f5es", "ts": "2026-06-21T12:00:00.000Z"}, {"id": 1746231201883, "desc": "Borrachas de veda\u00e7\u00e3o", "valor": 60, "cat": "Equipamentos / Instala\u00e7\u00f5es", "ts": "2026-06-21T12:00:00.000Z"}, {"id": 1746231111895, "desc": "Conex\u00f5es bomba pneum\u00e1tica", "valor": 499.2, "cat": "Equipamentos / Instala\u00e7\u00f5es", "ts": "2026-06-21T12:00:00.000Z"}, {"id": 1746230623203, "desc": "Conserto m\u00e1quina envase", "valor": 705, "cat": "Manuten\u00e7\u00e3o / M\u00e1quinas", "ts": "2026-06-21T12:00:00.000Z"}, {"id": 1746230752899, "desc": "Conserto forno SJM", "valor": 310, "cat": "Manuten\u00e7\u00e3o / M\u00e1quinas", "ts": "2026-06-21T12:00:00.000Z"}, {"id": 1746231407228, "desc": "CEDAE", "valor": 100, "cat": "Servi\u00e7os / Contas", "ts": "2026-06-21T12:00:00.000Z"}, {"id": 1746230765690, "desc": "Cestos", "valor": 9000, "cat": "Mat\u00e9ria-Prima / Embalagens", "ts": "2026-06-21T12:00:00.000Z"}], "2026-06-28_2026-07-04": [{"id": 1746230821994, "desc": "Combust\u00edvel (x4)", "valor": 800, "cat": "Combust\u00edvel", "ts": "2026-06-28T12:00:00.000Z"}, {"id": 1746231148045, "desc": "\u00c1gua (x2)", "valor": 40, "cat": "\u00c1gua / Higiene", "ts": "2026-06-28T12:00:00.000Z"}, {"id": 1746231412125, "desc": "Lacres, \u00e1gua e torneira", "valor": 68, "cat": "\u00c1gua / Higiene", "ts": "2026-06-28T12:00:00.000Z"}, {"id": 1746230721696, "desc": "Lixo", "valor": 50, "cat": "Limpeza / Utilidades", "ts": "2026-06-28T12:00:00.000Z"}, {"id": 1746230621264, "desc": "Lavagem Van", "valor": 50, "cat": "Limpeza / Utilidades", "ts": "2026-06-28T12:00:00.000Z"}, {"id": 1746230710872, "desc": "Uniforme", "valor": 2396, "cat": "EPI / Seguran\u00e7a", "ts": "2026-06-28T12:00:00.000Z"}, {"id": 1746231102272, "desc": "Touca 3000 unid.", "valor": 395, "cat": "EPI / Seguran\u00e7a", "ts": "2026-06-28T12:00:00.000Z"}, {"id": 1746231128580, "desc": "Luvas e touca", "valor": 803.65, "cat": "EPI / Seguran\u00e7a", "ts": "2026-06-28T12:00:00.000Z"}, {"id": 1746231015630, "desc": "Conserto m\u00e1quina envase", "valor": 300, "cat": "Manuten\u00e7\u00e3o / M\u00e1quinas", "ts": "2026-06-28T12:00:00.000Z"}, {"id": 1746231528712, "desc": "V\u00e1lvula solenoide", "valor": 225, "cat": "Manuten\u00e7\u00e3o / M\u00e1quinas", "ts": "2026-06-28T12:00:00.000Z"}, {"id": 1746230946660, "desc": "Manuten\u00e7\u00e3o programada Bongo", "valor": 790, "cat": "Manuten\u00e7\u00e3o / M\u00e1quinas", "ts": "2026-06-28T12:00:00.000Z"}, {"id": 1746231096605, "desc": "Instala\u00e7\u00e3o e pe\u00e7as compressor novo", "valor": 750, "cat": "Manuten\u00e7\u00e3o / M\u00e1quinas", "ts": "2026-06-28T12:00:00.000Z"}, {"id": 1746230891807, "desc": "Carro pipa d\u00edvida", "valor": 2000, "cat": "Frete / Transporte", "ts": "2026-06-28T12:00:00.000Z"}, {"id": 1746231455812, "desc": "Frete base creme SP", "valor": 2000, "cat": "Frete / Transporte", "ts": "2026-06-28T12:00:00.000Z"}, {"id": 1746231376174, "desc": "Frete Denny", "valor": 3300, "cat": "Frete / Transporte", "ts": "2026-06-28T12:00:00.000Z"}, {"id": 1746231265541, "desc": "Uber Dilan \u2014 seg a quart", "valor": 417, "cat": "Frete / Transporte", "ts": "2026-06-28T12:00:00.000Z"}, {"id": 1746231383334, "desc": "Antares", "valor": 1000, "cat": "Servi\u00e7os / Contas", "ts": "2026-06-28T12:00:00.000Z"}], "2026-07-05_2026-07-11": [{"id": 1746231432994, "desc": "Combust\u00edvel (x2)", "valor": 400, "cat": "Combust\u00edvel", "ts": "2026-07-05T12:00:00.000Z"}, {"id": 1746230609871, "desc": "Combust\u00edvel Van", "valor": 466.94, "cat": "Combust\u00edvel", "ts": "2026-07-05T12:00:00.000Z"}, {"id": 1746230613226, "desc": "\u00c1gua (x3)", "valor": 57, "cat": "\u00c1gua / Higiene", "ts": "2026-07-05T12:00:00.000Z"}, {"id": 1746230662126, "desc": "Papel higi\u00eanico", "valor": 16, "cat": "\u00c1gua / Higiene", "ts": "2026-07-05T12:00:00.000Z"}, {"id": 1746230938907, "desc": "Papel higi\u00eanico", "valor": 62, "cat": "\u00c1gua / Higiene", "ts": "2026-07-05T12:00:00.000Z"}, {"id": 1746231566891, "desc": "Lixo (x3)", "valor": 250, "cat": "Limpeza / Utilidades", "ts": "2026-07-05T12:00:00.000Z"}, {"id": 1746231031490, "desc": "Balde de a\u00e7o", "valor": 37, "cat": "Limpeza / Utilidades", "ts": "2026-07-05T12:00:00.000Z"}, {"id": 1746231393038, "desc": "Cabo el\u00e9trico Caxias", "valor": 120, "cat": "El\u00e9trica / Obra", "ts": "2026-07-05T12:00:00.000Z"}, {"id": 1746231128826, "desc": "Luzes Caxias", "valor": 86.4, "cat": "El\u00e9trica / Obra", "ts": "2026-07-05T12:00:00.000Z"}, {"id": 1746230664850, "desc": "Instala\u00e7\u00e3o ilumina\u00e7\u00e3o envase", "valor": 270, "cat": "El\u00e9trica / Obra", "ts": "2026-07-05T12:00:00.000Z"}, {"id": 1746231192474, "desc": "Material compressor SJM", "valor": 79.46, "cat": "Equipamentos / Instala\u00e7\u00f5es", "ts": "2026-07-05T12:00:00.000Z"}, {"id": 1746230914661, "desc": "Pe\u00e7as instala\u00e7\u00e3o compressor", "valor": 200, "cat": "Equipamentos / Instala\u00e7\u00f5es", "ts": "2026-07-05T12:00:00.000Z"}, {"id": 1746231121109, "desc": "Balan\u00e7a", "valor": 54, "cat": "Equipamentos / Instala\u00e7\u00f5es", "ts": "2026-07-05T12:00:00.000Z"}, {"id": 1746230744894, "desc": "Lixadeira", "valor": 153, "cat": "Equipamentos / Instala\u00e7\u00f5es", "ts": "2026-07-05T12:00:00.000Z"}, {"id": 1746230807596, "desc": "Trabalho de solda", "valor": 300, "cat": "Manuten\u00e7\u00e3o / M\u00e1quinas", "ts": "2026-07-05T12:00:00.000Z"}, {"id": 1746231379566, "desc": "Conserto Bongo", "valor": 280, "cat": "Manuten\u00e7\u00e3o / M\u00e1quinas", "ts": "2026-07-05T12:00:00.000Z"}, {"id": 1746231404548, "desc": "Marketing", "valor": 2200, "cat": "Marketing", "ts": "2026-07-05T12:00:00.000Z"}], "2026-07-12_2026-07-18": [{"id": 1746231099956, "desc": "Combust\u00edvel (x4 \u00d7 R$200)", "valor": 800, "cat": "Combust\u00edvel", "ts": "2026-07-12T12:00:00.000Z"}, {"id": 1746231044779, "desc": "Combust\u00edvel", "valor": 210, "cat": "Combust\u00edvel", "ts": "2026-07-12T12:00:00.000Z"}, {"id": 1746230709699, "desc": "Combust\u00edvel", "valor": 243, "cat": "Combust\u00edvel", "ts": "2026-07-12T12:00:00.000Z"}, {"id": 1746231445325, "desc": "Combust\u00edvel", "valor": 200, "cat": "Combust\u00edvel", "ts": "2026-07-12T12:00:00.000Z"}, {"id": 1746230658258, "desc": "\u00c1gua (x7)", "valor": 160.49, "cat": "\u00c1gua / Higiene", "ts": "2026-07-12T12:00:00.000Z"}, {"id": 1746230844264, "desc": "Papel", "valor": 9.99, "cat": "\u00c1gua / Higiene", "ts": "2026-07-12T12:00:00.000Z"}, {"id": 1746230626167, "desc": "Mat. limpeza Caxias", "valor": 70, "cat": "Limpeza / Utilidades", "ts": "2026-07-12T12:00:00.000Z"}, {"id": 1746230625418, "desc": "Lixo SJM", "valor": 100, "cat": "Limpeza / Utilidades", "ts": "2026-07-12T12:00:00.000Z"}, {"id": 1746230815701, "desc": "Rodos", "valor": 35, "cat": "Limpeza / Utilidades", "ts": "2026-07-12T12:00:00.000Z"}, {"id": 1746231119087, "desc": "Vassoura", "valor": 21, "cat": "Limpeza / Utilidades", "ts": "2026-07-12T12:00:00.000Z"}, {"id": 1746231049064, "desc": "Esponja para vidro", "valor": 86, "cat": "Limpeza / Utilidades", "ts": "2026-07-12T12:00:00.000Z"}, {"id": 1746231063685, "desc": "P\u00e1", "valor": 7, "cat": "Limpeza / Utilidades", "ts": "2026-07-12T12:00:00.000Z"}, {"id": 1746230902566, "desc": "Luvas", "valor": 497, "cat": "EPI / Seguran\u00e7a", "ts": "2026-07-12T12:00:00.000Z"}, {"id": 1746231103677, "desc": "\u00d3leo dire\u00e7\u00e3o Van", "valor": 50, "cat": "Ve\u00edculo / Manuten\u00e7\u00e3o", "ts": "2026-07-12T12:00:00.000Z"}, {"id": 1746230902085, "desc": "C\u00e2mara de ar", "valor": 77, "cat": "Ve\u00edculo / Manuten\u00e7\u00e3o", "ts": "2026-07-12T12:00:00.000Z"}, {"id": 1746231225468, "desc": "Servi\u00e7os el\u00e9tricos Caxias e SJM", "valor": 637.16, "cat": "El\u00e9trica / Obra", "ts": "2026-07-12T12:00:00.000Z"}, {"id": 1746231299157, "desc": "Chave para motor el\u00e9trico", "valor": 288, "cat": "El\u00e9trica / Obra", "ts": "2026-07-12T12:00:00.000Z"}, {"id": 1746231592136, "desc": "Tico tico", "valor": 560, "cat": "Equipamentos / Instala\u00e7\u00f5es", "ts": "2026-07-12T12:00:00.000Z"}, {"id": 1746231565671, "desc": "Compressor Caxias", "valor": 390, "cat": "Equipamentos / Instala\u00e7\u00f5es", "ts": "2026-07-12T12:00:00.000Z"}, {"id": 1746230705840, "desc": "Corante", "valor": 380, "cat": "Equipamentos / Instala\u00e7\u00f5es", "ts": "2026-07-12T12:00:00.000Z"}, {"id": 1746231576063, "desc": "V\u00e1lvulas bomba pneum\u00e1tica", "valor": 270, "cat": "Equipamentos / Instala\u00e7\u00f5es", "ts": "2026-07-12T12:00:00.000Z"}, {"id": 1746231424627, "desc": "Pneu", "valor": 68.8, "cat": "Equipamentos / Instala\u00e7\u00f5es", "ts": "2026-07-12T12:00:00.000Z"}, {"id": 1746231404662, "desc": "Cadeado", "valor": 40, "cat": "Equipamentos / Instala\u00e7\u00f5es", "ts": "2026-07-12T12:00:00.000Z"}, {"id": 1746231149923, "desc": "Chave de boca", "valor": 119, "cat": "Equipamentos / Instala\u00e7\u00f5es", "ts": "2026-07-12T12:00:00.000Z"}, {"id": 1746230900203, "desc": "Conserto solda Caxias", "valor": 350, "cat": "Manuten\u00e7\u00e3o / M\u00e1quinas", "ts": "2026-07-12T12:00:00.000Z"}, {"id": 1746231093176, "desc": "Conserto m\u00e1quina envase", "valor": 467, "cat": "Manuten\u00e7\u00e3o / M\u00e1quinas", "ts": "2026-07-12T12:00:00.000Z"}, {"id": 1746231290174, "desc": "Reparo m\u00e1quina envase", "valor": 260, "cat": "Manuten\u00e7\u00e3o / M\u00e1quinas", "ts": "2026-07-12T12:00:00.000Z"}, {"id": 1746230959786, "desc": "Sal", "valor": 50.01, "cat": "Sal", "ts": "2026-07-12T12:00:00.000Z"}], "2026-07-19_2026-07-25": [{"id": 1746231065721, "desc": "Combust\u00edvel (x2)", "valor": 400, "cat": "Combust\u00edvel", "ts": "2026-07-19T12:00:00.000Z"}, {"id": 1746231270946, "desc": "\u00c1gua (x2)", "valor": 40, "cat": "\u00c1gua / Higiene", "ts": "2026-07-19T12:00:00.000Z"}, {"id": 1746231468830, "desc": "Papel higi\u00eanico", "valor": 205, "cat": "\u00c1gua / Higiene", "ts": "2026-07-19T12:00:00.000Z"}, {"id": 1746231063411, "desc": "Lixo (x2)", "valor": 200, "cat": "Limpeza / Utilidades", "ts": "2026-07-19T12:00:00.000Z"}, {"id": 1746231269369, "desc": "Pano", "valor": 10, "cat": "Limpeza / Utilidades", "ts": "2026-07-19T12:00:00.000Z"}, {"id": 1746231413450, "desc": "Luvas", "valor": 424, "cat": "EPI / Seguran\u00e7a", "ts": "2026-07-19T12:00:00.000Z"}, {"id": 1746231402694, "desc": "Touca 3000 unid.", "valor": 269, "cat": "EPI / Seguran\u00e7a", "ts": "2026-07-19T12:00:00.000Z"}, {"id": 1746231024440, "desc": "Botas EPI", "valor": 149, "cat": "EPI / Seguran\u00e7a", "ts": "2026-07-19T12:00:00.000Z"}, {"id": 1746231566940, "desc": "Conserto pneu Bongo", "valor": 40, "cat": "Ve\u00edculo / Manuten\u00e7\u00e3o", "ts": "2026-07-19T12:00:00.000Z"}, {"id": 1746231208392, "desc": "Reparo el\u00e9trico", "valor": 220, "cat": "El\u00e9trica / Obra", "ts": "2026-07-19T12:00:00.000Z"}, {"id": 1746231169786, "desc": "Sensor m\u00e1quina envase", "valor": 515, "cat": "Manuten\u00e7\u00e3o / M\u00e1quinas", "ts": "2026-07-19T12:00:00.000Z"}, {"id": 1746231164954, "desc": "Conserto compressor", "valor": 600, "cat": "Manuten\u00e7\u00e3o / M\u00e1quinas", "ts": "2026-07-19T12:00:00.000Z"}, {"id": 1746230900024, "desc": "Conserto m\u00e1quina Caxias", "valor": 270, "cat": "Manuten\u00e7\u00e3o / M\u00e1quinas", "ts": "2026-07-19T12:00:00.000Z"}, {"id": 1746231143446, "desc": "2 bicos para as m\u00e1quinas", "valor": 410, "cat": "Manuten\u00e7\u00e3o / M\u00e1quinas", "ts": "2026-07-19T12:00:00.000Z"}, {"id": 1746231618404, "desc": "Balde de inox", "valor": 135, "cat": "Equipamentos / Instala\u00e7\u00f5es", "ts": "2026-07-19T12:00:00.000Z"}, {"id": 1746231304303, "desc": "Caderno de ponto", "valor": 26, "cat": "Equipamentos / Instala\u00e7\u00f5es", "ts": "2026-07-19T12:00:00.000Z"}, {"id": 1746230833954, "desc": "Amida 90", "valor": 1125, "cat": "Equipamentos / Instala\u00e7\u00f5es", "ts": "2026-07-19T12:00:00.000Z"}, {"id": 1746231283985, "desc": "Antares", "valor": 1000, "cat": "Servi\u00e7os / Contas", "ts": "2026-07-19T12:00:00.000Z"}, {"id": 1746230695069, "desc": "Antares", "valor": 500, "cat": "Servi\u00e7os / Contas", "ts": "2026-07-19T12:00:00.000Z"}, {"id": 1746231153883, "desc": "Mensalidade c\u00e2mera", "valor": 37.27, "cat": "Servi\u00e7os / Contas", "ts": "2026-07-19T12:00:00.000Z"}, {"id": 1746231399959, "desc": "Frete Denny", "valor": 3136.0, "cat": "Frete / Transporte", "ts": "2026-07-19T12:00:00.000Z"}], "2026-07-26_2026-08-01": [{"id": 1746231288859, "desc": "\u00c1gua (x4)", "valor": 107, "cat": "\u00c1gua / Higiene", "ts": "2026-07-26T12:00:00.000Z"}, {"id": 1746231485542, "desc": "Lixo (x2)", "valor": 200, "cat": "Limpeza / Utilidades", "ts": "2026-07-26T12:00:00.000Z"}, {"id": 1746231256169, "desc": "Tintas", "valor": 170, "cat": "Limpeza / Utilidades", "ts": "2026-07-26T12:00:00.000Z"}, {"id": 1746231148359, "desc": "Botas", "valor": 245.82, "cat": "EPI / Seguran\u00e7a", "ts": "2026-07-26T12:00:00.000Z"}, {"id": 1746230872717, "desc": "\u00d3culos EPI", "valor": 69.9, "cat": "EPI / Seguran\u00e7a", "ts": "2026-07-26T12:00:00.000Z"}, {"id": 1746230850711, "desc": "\u00d3leo Van", "valor": 30, "cat": "Ve\u00edculo / Manuten\u00e7\u00e3o", "ts": "2026-07-26T12:00:00.000Z"}, {"id": 1746231055714, "desc": "Pneus", "valor": 1881, "cat": "Ve\u00edculo / Manuten\u00e7\u00e3o", "ts": "2026-07-26T12:00:00.000Z"}, {"id": 1746230776328, "desc": "M\u00e1quina envase", "valor": 738, "cat": "Manuten\u00e7\u00e3o / M\u00e1quinas", "ts": "2026-07-26T12:00:00.000Z"}, {"id": 1746231541027, "desc": "Ferramentas", "valor": 109.9, "cat": "Equipamentos / Instala\u00e7\u00f5es", "ts": "2026-07-26T12:00:00.000Z"}, {"id": 1746231625468, "desc": "Tesoura", "valor": 29.43, "cat": "Equipamentos / Instala\u00e7\u00f5es", "ts": "2026-07-26T12:00:00.000Z"}, {"id": 1746230762214, "desc": "Caminh\u00e3o pipa", "valor": 1500, "cat": "Frete / Transporte", "ts": "2026-07-26T12:00:00.000Z"}, {"id": 1746230793255, "desc": "Frete Denny", "valor": 3300, "cat": "Frete / Transporte", "ts": "2026-07-26T12:00:00.000Z"}, {"id": 1746230766020, "desc": "ANVISA", "valor": 175.72, "cat": "Servi\u00e7os / Contas", "ts": "2026-07-26T12:00:00.000Z"}, {"id": 1746231038681, "desc": "Anfotero", "valor": 2200, "cat": "Mat\u00e9ria-Prima / Embalagens", "ts": "2026-07-26T12:00:00.000Z"}, {"id": 1746231301975, "desc": "Combust\u00edvel", "valor": 1000, "cat": "Combust\u00edvel", "ts": "2026-07-26T12:00:00.000Z"}, {"id": 1746230934882, "desc": "Tampa combust\u00edvel Bongo", "valor": 50, "cat": "Combust\u00edvel", "ts": "2026-07-26T12:00:00.000Z"}], "2026-08-02_2026-08-08": [{"id": 1746231543571, "desc": "Combust\u00edvel", "valor": 1000, "cat": "Combust\u00edvel", "ts": "2026-08-02T12:00:00.000Z"}, {"id": 1746230757162, "desc": "Combust\u00edvel semana anterior 17-23/07", "valor": 600, "cat": "Combust\u00edvel", "ts": "2026-08-02T12:00:00.000Z"}, {"id": 1746231580689, "desc": "\u00c1gua (x2)", "valor": 38, "cat": "\u00c1gua / Higiene", "ts": "2026-08-02T12:00:00.000Z"}, {"id": 1746230680380, "desc": "Lixo (x2)", "valor": 200, "cat": "Limpeza / Utilidades", "ts": "2026-08-02T12:00:00.000Z"}, {"id": 1746231348953, "desc": "Pano", "valor": 20, "cat": "Limpeza / Utilidades", "ts": "2026-08-02T12:00:00.000Z"}, {"id": 1746231112463, "desc": "Luvas", "valor": 436, "cat": "EPI / Seguran\u00e7a", "ts": "2026-08-02T12:00:00.000Z"}, {"id": 1746231109265, "desc": "Touca", "valor": 269, "cat": "EPI / Seguran\u00e7a", "ts": "2026-08-02T12:00:00.000Z"}, {"id": 1746231623766, "desc": "Botas EPI", "valor": 149, "cat": "EPI / Seguran\u00e7a", "ts": "2026-08-02T12:00:00.000Z"}, {"id": 1746231095616, "desc": "Mec\u00e2nico Van", "valor": 80, "cat": "Ve\u00edculo / Manuten\u00e7\u00e3o", "ts": "2026-08-02T12:00:00.000Z"}, {"id": 1746231669637, "desc": "Mec\u00e2nico Bongo", "valor": 200, "cat": "Ve\u00edculo / Manuten\u00e7\u00e3o", "ts": "2026-08-02T12:00:00.000Z"}, {"id": 1746231298746, "desc": "Calibrador pneus", "valor": 36, "cat": "Ve\u00edculo / Manuten\u00e7\u00e3o", "ts": "2026-08-02T12:00:00.000Z"}, {"id": 1746230875650, "desc": "Reparo el\u00e9trico", "valor": 260, "cat": "El\u00e9trica / Obra", "ts": "2026-08-02T12:00:00.000Z"}, {"id": 1746231192888, "desc": "Protetor el\u00e9trico", "valor": 83, "cat": "El\u00e9trica / Obra", "ts": "2026-08-02T12:00:00.000Z"}, {"id": 1746231018638, "desc": "Sensor m\u00e1quina envase", "valor": 515, "cat": "Manuten\u00e7\u00e3o / M\u00e1quinas", "ts": "2026-08-02T12:00:00.000Z"}, {"id": 1746231294328, "desc": "Conserto compressor", "valor": 600, "cat": "Manuten\u00e7\u00e3o / M\u00e1quinas", "ts": "2026-08-02T12:00:00.000Z"}, {"id": 1746231225816, "desc": "Conserto m\u00e1quina Caxias", "valor": 270, "cat": "Manuten\u00e7\u00e3o / M\u00e1quinas", "ts": "2026-08-02T12:00:00.000Z"}, {"id": 1746231000027, "desc": "2 bicos para as m\u00e1quinas", "valor": 410, "cat": "Manuten\u00e7\u00e3o / M\u00e1quinas", "ts": "2026-08-02T12:00:00.000Z"}, {"id": 1746231211874, "desc": "Carregador tablet", "valor": 77, "cat": "Equipamentos / Instala\u00e7\u00f5es", "ts": "2026-08-02T12:00:00.000Z"}, {"id": 1746230797184, "desc": "Caneta permanente", "valor": 58, "cat": "Equipamentos / Instala\u00e7\u00f5es", "ts": "2026-08-02T12:00:00.000Z"}, {"id": 1746231154243, "desc": "PVP", "valor": 173, "cat": "Equipamentos / Instala\u00e7\u00f5es", "ts": "2026-08-02T12:00:00.000Z"}, {"id": 1746231359604, "desc": "Antares", "valor": 1000, "cat": "Servi\u00e7os / Contas", "ts": "2026-08-02T12:00:00.000Z"}, {"id": 1746230723055, "desc": "Antares", "valor": 500, "cat": "Servi\u00e7os / Contas", "ts": "2026-08-02T12:00:00.000Z"}, {"id": 1746231423895, "desc": "Mensalidade c\u00e2mera", "valor": 37.27, "cat": "Servi\u00e7os / Contas", "ts": "2026-08-02T12:00:00.000Z"}, {"id": 1746230928869, "desc": "Frete Denny", "valor": 3300, "cat": "Frete / Transporte", "ts": "2026-08-02T12:00:00.000Z"}]}};
+<div class="page pb80" id="page-historico">
+  <div class="chart-wrap">
+    <h3>Evolução Semanal de Gastos</h3>
+    <canvas id="chartHistory" height="200"></canvas>
+  </div>
+  <div id="historico-list"></div>
+</div>
+
+<!-- EXPORTAR -->
+<div class="page pb80" id="page-exportar">
+  <div class="export-card">
+    <div class="e-icon">🖨️</div>
+    <div class="e-title">Gerar PDF com Gráficos</div>
+    <div class="e-desc">Gera PDF completo da semana atual com gráfico de barras por categoria e gráfico de pizza, pronto para imprimir</div>
+    <button class="btn btn-pdf" onclick="generatePDF()">🖨️ Gerar PDF</button>
+  </div>
+  <div class="export-card">
+    <div class="e-icon">📄</div>
+    <div class="e-title">Copiar para Claude</div>
+    <div class="e-desc">Copia os gastos em formato de texto para enviar ao Claude e gerar PDF pelo chat</div>
+    <button class="btn btn-primary" onclick="exportText()">📋 Copiar Texto</button>
+  </div>
+  <div class="export-card">
+    <div class="e-icon">📊</div>
+    <div class="e-title">Exportar CSV</div>
+    <div class="e-desc">Baixa todos os dados em formato CSV para Excel ou planilha</div>
+    <button class="btn btn-primary" onclick="exportCSV()">⬇️ Baixar CSV</button>
+  </div>
+  <div class="export-card">
+    <div class="e-icon">🗑️</div>
+    <div class="e-title">Limpar Semana Atual</div>
+    <div class="e-desc">Remove todos os lançamentos da semana atual</div>
+    <button class="btn" style="background:linear-gradient(135deg,#c0392b,#922b21);color:white;width:100%;justify-content:center" onclick="clearWeek()">🗑️ Limpar Semana</button>
+  </div>
+</div>
+
+<!-- TOTAL BAR -->
+<div class="total-bar" id="totalBar">
+  <div><div class="total-label">TOTAL DA SEMANA</div><div class="total-value" id="totalDisplay">R$ 0,00</div></div>
+  <button class="btn btn-ghost" onclick="switchTab('resumo',document.querySelectorAll('.tab')[1])">Ver resumo →</button>
+</div>
+
+<!-- WEEK MODAL -->
+<div class="modal-overlay" id="weekModal">
+  <div class="modal">
+    <h3>📅 Selecionar Semana</h3>
+    <div class="form-group" style="margin-bottom:12px"><label>Início</label><input type="date" id="modalWeekStart"></div>
+    <div class="form-group" style="margin-bottom:16px"><label>Fim</label><input type="date" id="modalWeekEnd"></div>
+    <button class="btn btn-primary" onclick="applyWeek()">✅ Confirmar</button>
+    <button class="btn btn-ghost" style="margin-top:8px;width:100%;justify-content:center" onclick="closeWeekModal()">Cancelar</button>
+  </div>
+</div>
+
+<script>
+// ── Storage ────────────────────────────────────────────────
+const SK='xpro33_gastos_v3';
+function loadData(){try{const r=localStorage.getItem(SK);return r?JSON.parse(r):{weeks:{}}}catch(e){return{weeks:{}}}}
+function saveData(d){localStorage.setItem(SK,JSON.stringify(d))}
+let appData=loadData();
+
+// ── Category colors ────────────────────────────────────────
+const catColors={
+  'Combustível':'#4f7cff','Água / Higiene':'#3498db','Limpeza / Utilidades':'#2ecc71',
+  'EPI / Segurança':'#f39c12','Veículo / Manutenção':'#e74c3c','Elétrica / Obra':'#f1c40f',
+  'Equipamentos / Instalações':'#9b59b6','Manutenção / Máquinas':'#e67e22',
+  'Frete / Transporte':'#1abc9c','Matéria-Prima / Embalagens':'#e91e63',
+  'Sal':'#95a5a6','Caminhão Pipa':'#34495e','Serviços / Contas':'#16a085',
+  'Marketing':'#8e44ad','Outros':'#7f8c8d'
+};
+
+// ── Charts ─────────────────────────────────────────────────
+let chartCat=null,chartPie=null,chartHistory=null;
+
+function destroyChart(c){if(c){c.destroy();return null;}return null;}
+
+// ── Utils ──────────────────────────────────────────────────
+function fmtBRL(v){return'R$ '+Number(v).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}
+function getWeekKey(){const s=document.getElementById('weekStart').value,e=document.getElementById('weekEnd').value;return(!s||!e)?'sem-data':s+'_'+e}
+function getWeekLabel(key){
+  if(!key||key==='sem-data')return'Sem data';
+  const[s,e]=key.split('_');
+  const fmt=d=>{const[y,m,day]=d.split('-');return`${day}/${m}`};
+  return`${fmt(s)} a ${fmt(e)}`
+}
+function updateWeekLabel(){document.getElementById('currentWeekLabel').textContent=getWeekLabel(getWeekKey());renderItems();renderSummary()}
+function showToast(msg,color){const t=document.getElementById('toast');t.textContent=msg;t.style.background=color||'#2ecc71';t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500)}
+
+// ── Init ───────────────────────────────────────────────────
+function initDates(){
+  const today=new Date(),day=today.getDay();
+  const mon=new Date(today);mon.setDate(today.getDate()-(day===0?6:day-1));
+  const sun=new Date(mon);sun.setDate(mon.getDate()+6);
+  const fmt=d=>d.toISOString().split('T')[0];
+  document.getElementById('weekStart').value=fmt(mon);
+  document.getElementById('weekEnd').value=fmt(sun);
+  updateWeekLabel();
+}
+
+// ── Add ────────────────────────────────────────────────────
+function addItem(){
+  const desc=document.getElementById('desc').value.trim();
+  const valor=parseFloat(document.getElementById('valor').value);
+  const cat=document.getElementById('categoria').value;
+  if(!desc){showToast('⚠️ Informe a descrição','#e74c3c');return}
+  if(!valor||valor<=0){showToast('⚠️ Valor inválido','#e74c3c');return}
+  const key=getWeekKey();
+  if(!appData.weeks[key])appData.weeks[key]=[];
+  appData.weeks[key].push({id:Date.now(),desc,valor,cat,ts:new Date().toISOString()});
+  saveData(appData);
+  document.getElementById('desc').value='';
+  document.getElementById('valor').value='';
+  renderItems();renderSummary();showToast('✅ Lançamento adicionado!');
+}
+
+function removeItem(id){
+  const key=getWeekKey();
+  appData.weeks[key]=(appData.weeks[key]||[]).filter(i=>i.id!==id);
+  saveData(appData);renderItems();renderSummary();showToast('🗑️ Removido','#e74c3c');
+}
+
+// ── Render Items ───────────────────────────────────────────
+function renderItems(){
+  const key=getWeekKey(),items=appData.weeks[key]||[],list=document.getElementById('items-list');
+  if(items.length===0){list.innerHTML='<div class="empty"><div class="e">📝</div><p>Nenhum gasto lançado</p></div>';document.getElementById('totalDisplay').textContent='R$ 0,00';return}
+  const total=items.reduce((s,i)=>s+i.valor,0);
+  document.getElementById('totalDisplay').textContent=fmtBRL(total);
+  const byCat={};
+  items.forEach(i=>{if(!byCat[i.cat])byCat[i.cat]=[];byCat[i.cat].push(i)});
+  let html='';
+  Object.entries(byCat).forEach(([cat,citems])=>{
+    const catTotal=citems.reduce((s,i)=>s+i.valor,0),color=catColors[cat]||'#7f8c8d';
+    html+=`<div style="margin-bottom:14px">`;
+    html+=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">`;
+    html+=`<div style="display:flex;align-items:center;gap:6px"><div style="width:8px;height:8px;border-radius:50%;background:${color}"></div><span style="font-size:12px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.5px">${cat}</span></div>`;
+    html+=`<span style="font-size:12px;font-weight:700;color:${color}">${fmtBRL(catTotal)}</span></div>`;
+    citems.forEach(item=>{
+      html+=`<div class="item-row"><div class="item-cat-dot" style="background:${color}"></div>`;
+      html+=`<div class="item-info"><div class="item-desc">${item.desc}</div></div>`;
+      html+=`<div class="item-val">${fmtBRL(item.valor)}</div>`;
+      html+=`<button class="btn-danger" onclick="removeItem(${item.id})">×</button></div>`;
+    });
+    html+='</div>';
+  });
+  list.innerHTML=html;
+}
+
+// ── Render Summary ─────────────────────────────────────────
+function renderSummary(){
+  const key=getWeekKey(),items=appData.weeks[key]||[];
+  const total=items.reduce((s,i)=>s+i.valor,0);
+  document.getElementById('sum-total').textContent=fmtBRL(total);
+  document.getElementById('sum-week-label').textContent=getWeekLabel(key);
+  document.getElementById('sum-count').textContent=items.length;
+  const cats=new Set(items.map(i=>i.cat));
+  document.getElementById('sum-cats').textContent=cats.size;
+  const maxItem=items.reduce((m,i)=>i.valor>(m?.valor||0)?i:m,null);
+  document.getElementById('sum-max').textContent=maxItem?fmtBRL(maxItem.valor):'R$ 0,00';
+  document.getElementById('sum-max-desc').textContent=maxItem?maxItem.desc:'—';
+
+  const byCat={};
+  items.forEach(i=>{byCat[i.cat]=(byCat[i.cat]||0)+i.valor});
+  const sorted=Object.entries(byCat).sort((a,b)=>b[1]-a[1]);
+
+  // ── Chart: barras ──
+  chartCat=destroyChart(chartCat);
+  if(sorted.length>0){
+    const ctx=document.getElementById('chartCat').getContext('2d');
+    chartCat=new Chart(ctx,{
+      type:'bar',
+      data:{
+        labels:sorted.map(([c])=>c.length>18?c.substring(0,16)+'…':c),
+        datasets:[{
+          data:sorted.map(([,v])=>v),
+          backgroundColor:sorted.map(([c])=>(catColors[c]||'#7f8c8d')+'CC'),
+          borderColor:sorted.map(([c])=>catColors[c]||'#7f8c8d'),
+          borderWidth:2,borderRadius:6
+        }]
+      },
+      options:{
+        responsive:true,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>`R$ ${ctx.parsed.y.toLocaleString('pt-BR',{minimumFractionDigits:2})}`}}},
+        scales:{x:{ticks:{color:'#8b90a8',font:{size:10}},grid:{color:'#2e3350'}},y:{ticks:{color:'#8b90a8',callback:v=>`R$ ${(v/1000).toFixed(0)}k`},grid:{color:'#2e3350'}}}
+      }
+    });
+  }
+
+  // ── Chart: pizza ──
+  chartPie=destroyChart(chartPie);
+  if(sorted.length>0){
+    const ctx2=document.getElementById('chartPie').getContext('2d');
+    chartPie=new Chart(ctx2,{
+      type:'doughnut',
+      data:{
+        labels:sorted.map(([c])=>c),
+        datasets:[{data:sorted.map(([,v])=>v),backgroundColor:sorted.map(([c])=>catColors[c]||'#7f8c8d'),borderColor:'#1a1d27',borderWidth:3}]
+      },
+      options:{
+        responsive:true,
+        plugins:{legend:{position:'bottom',labels:{color:'#8b90a8',font:{size:11},padding:12}},
+          tooltip:{callbacks:{label:ctx=>{const pct=total>0?(ctx.parsed/total*100).toFixed(1):'0';return`${ctx.label}: R$ ${ctx.parsed.toLocaleString('pt-BR',{minimumFractionDigits:2})} (${pct}%)`}}}}
+      }
+    });
+  }
+
+  // ── Cat detail ──
+  const catDiv=document.getElementById('cat-summary');
+  if(sorted.length===0){catDiv.innerHTML='<div class="empty"><div class="e">📊</div><p>Sem dados</p></div>';return}
+  catDiv.innerHTML=sorted.map(([cat,val])=>{
+    const pct=total>0?(val/total*100).toFixed(1):0,color=catColors[cat]||'#7f8c8d';
+    return`<div class="cat-row"><div class="cat-dot" style="background:${color}"></div><div style="flex:1"><div style="display:flex;align-items:center;justify-content:space-between"><span class="cat-name">${cat}</span><div style="display:flex;align-items:center"><span class="cat-val">${fmtBRL(val)}</span><span class="cat-pct">${pct}%</span></div></div><div class="cat-bar-wrap"><div class="cat-bar" style="width:${pct}%;background:${color}"></div></div></div></div>`;
+  }).join('');
+}
+
+// ── Render History ─────────────────────────────────────────
+function renderHistory(){
+  const weeks=Object.entries(appData.weeks).filter(([k,v])=>v.length>0).sort((a,b)=>b[0].localeCompare(a[0]));
+
+  // ── Chart evolução ──
+  chartHistory=destroyChart(chartHistory);
+  if(weeks.length>0){
+    const sorted=[...weeks].reverse();
+    const ctx=document.getElementById('chartHistory').getContext('2d');
+    chartHistory=new Chart(ctx,{
+      type:'line',
+      data:{
+        labels:sorted.map(([k])=>getWeekLabel(k)),
+        datasets:[{
+          label:'Total semanal',
+          data:sorted.map(([,v])=>v.reduce((s,i)=>s+i.valor,0)),
+          borderColor:'#4f7cff',backgroundColor:'rgba(79,124,255,0.15)',
+          tension:0.4,fill:true,pointBackgroundColor:'#4f7cff',pointRadius:5,borderWidth:2
+        }]
+      },
+      options:{
+        responsive:true,
+        plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>`R$ ${ctx.parsed.y.toLocaleString('pt-BR',{minimumFractionDigits:2})}`}}},
+        scales:{x:{ticks:{color:'#8b90a8',font:{size:10}},grid:{color:'#2e3350'}},y:{ticks:{color:'#8b90a8',callback:v=>`R$ ${(v/1000).toFixed(0)}k`},grid:{color:'#2e3350'}}}
+      }
+    });
+  }
+
+  const div=document.getElementById('historico-list');
+  if(weeks.length===0){div.innerHTML='<div class="empty"><div class="e">📋</div><p>Nenhuma semana registrada</p></div>';return}
+  div.innerHTML=weeks.map(([key,items])=>{
+    const total=items.reduce((s,i)=>s+i.valor,0),label=getWeekLabel(key);
+    const itemsHtml=items.map(i=>`<div class="item-row" style="margin-bottom:4px"><div class="item-cat-dot" style="background:${catColors[i.cat]||'#7f8c8d'}"></div><div class="item-info"><div class="item-desc">${i.desc}</div><div class="item-cat-label">${i.cat}</div></div><div class="item-val">${fmtBRL(i.valor)}</div></div>`).join('');
+    return`<div class="history-week" onclick="this.classList.toggle('open')"><div class="history-week-header"><div><div class="history-week-label">${label}</div><div style="font-size:11px;color:var(--text3);margin-top:2px">${items.length} lançamentos</div></div><div style="display:flex;align-items:center"><div class="history-week-total">${fmtBRL(total)}</div><div class="chevron">▼</div></div></div><div class="history-week-items">${itemsHtml}</div></div>`;
+  }).join('');
+}
+
+// ── Generate PDF ───────────────────────────────────────────
+function generatePDF(){
+  const key=getWeekKey(),items=appData.weeks[key]||[];
+  if(items.length===0){showToast('⚠️ Nenhum item para gerar PDF','#e74c3c');return}
+
+  const total=items.reduce((s,i)=>s+i.valor,0);
+  const byCat={};
+  items.forEach(i=>{if(!byCat[i.cat])byCat[i.cat]=[];byCat[i.cat].push(i)});
+  const catTotals=Object.entries(byCat).map(([c,v])=>({cat:c,val:v.reduce((s,i)=>s+i.valor,0)})).sort((a,b)=>b.val-a.val);
+  const label=getWeekLabel(key);
+
+  // Gera os gráficos em canvas offscreen
+  const c1=document.createElement('canvas');c1.width=600;c1.height=300;
+  const ch1=new Chart(c1.getContext('2d'),{
+    type:'bar',
+    data:{labels:catTotals.map(x=>x.cat.length>20?x.cat.substring(0,18)+'…':x.cat),datasets:[{data:catTotals.map(x=>x.val),backgroundColor:catTotals.map(x=>(catColors[x.cat]||'#7f8c8d')+'CC'),borderColor:catTotals.map(x=>catColors[x.cat]||'#7f8c8d'),borderWidth:2,borderRadius:6}]},
+    options:{animation:false,responsive:false,plugins:{legend:{display:false}},scales:{x:{ticks:{font:{size:10}}},y:{ticks:{callback:v=>`R$${(v/1000).toFixed(0)}k`}}}}
+  });
+
+  const c2=document.createElement('canvas');c2.width=400;c2.height=300;
+  const ch2=new Chart(c2.getContext('2d'),{
+    type:'doughnut',
+    data:{labels:catTotals.map(x=>x.cat),datasets:[{data:catTotals.map(x=>x.val),backgroundColor:catTotals.map(x=>catColors[x.cat]||'#7f8c8d'),borderWidth:3,borderColor:'#fff'}]},
+    options:{animation:false,responsive:false,plugins:{legend:{position:'right',labels:{font:{size:10},padding:8}}}}
+  });
+
+  setTimeout(()=>{
+    const img1=c1.toDataURL('image/png');
+    const img2=c2.toDataURL('image/png');
+    ch1.destroy();ch2.destroy();
+
+    // Monta HTML do PDF
+    let rowsHtml='';
+    Object.entries(byCat).forEach(([cat,citems])=>{
+      const catTotal=citems.reduce((s,i)=>s+i.valor,0),color=catColors[cat]||'#7f8c8d';
+      rowsHtml+=`<tr style="background:#f0f4ff"><td colspan="2" style="padding:8px 12px;font-weight:700;color:${color};font-size:13px;border-bottom:1px solid #e0e6f0">▸ ${cat}</td><td style="padding:8px 12px;font-weight:700;text-align:right;border-bottom:1px solid #e0e6f0">${fmtBRL(catTotal)}</td></tr>`;
+      citems.forEach(item=>{
+        rowsHtml+=`<tr><td style="padding:6px 12px 6px 24px;font-size:12px;color:#555;border-bottom:1px solid #f5f5f5">${item.desc}</td><td style="padding:6px 12px;font-size:11px;color:#888;border-bottom:1px solid #f5f5f5">${item.cat}</td><td style="padding:6px 12px;font-size:12px;text-align:right;border-bottom:1px solid #f5f5f5">${fmtBRL(item.valor)}</td></tr>`;
+      });
+    });
+
+    const html=`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Gastos ${label}</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0f1117">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="XPRO33">
+  <link rel="apple-touch-icon" href="icon-192.png">
+    <style>
+      body{font-family:Arial,sans-serif;margin:0;padding:20px;color:#1a1a2e;background:#fff}
+      .header{background:linear-gradient(135deg,#1a1d27,#2c3e50);color:white;padding:20px 24px;border-radius:8px;margin-bottom:20px}
+      .header h1{font-size:22px;margin:0 0 4px 0}
+      .header p{font-size:13px;opacity:.8;margin:0}
+      .kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px}
+      .kpi{background:#f8f9ff;border:1px solid #e0e6f0;border-radius:8px;padding:14px;text-align:center}
+      .kpi .k-label{font-size:11px;color:#888;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
+      .kpi .k-val{font-size:18px;font-weight:800;color:#1a1a2e}
+      .charts{display:grid;grid-template-columns:3fr 2fr;gap:16px;margin-bottom:20px}
+      .chart-box{background:#f8f9ff;border:1px solid #e0e6f0;border-radius:8px;padding:14px}
+      .chart-box h3{font-size:12px;color:#888;text-transform:uppercase;letter-spacing:.5px;margin:0 0 10px 0}
+      .chart-box img{width:100%;height:auto;border-radius:4px}
+      table{width:100%;border-collapse:collapse;font-size:13px}
+      .total-row{background:#1a1a2e;color:white;font-weight:800;font-size:15px}
+      .total-row td{padding:12px;border-radius:0}
+      @media print{body{padding:0}}
+    </style></head><body>
+    <div class="header"><h1>XPRO33 — Relatório de Gastos</h1><p>Período: ${label} &nbsp;|&nbsp; Gerado em: ${new Date().toLocaleDateString('pt-BR')}</p></div>
+    <div class="kpis">
+      <div class="kpi"><div class="k-label">Total da Semana</div><div class="k-val">${fmtBRL(total)}</div></div>
+      <div class="kpi"><div class="k-label">Nº de Lançamentos</div><div class="k-val">${items.length}</div></div>
+      <div class="kpi"><div class="k-label">Maior Gasto</div><div class="k-val">${fmtBRL(Math.max(...items.map(i=>i.valor)))}</div></div>
+    </div>
+    <div class="charts">
+      <div class="chart-box"><h3>Gastos por Categoria</h3><img src="${img1}"></div>
+      <div class="chart-box"><h3>Distribuição %</h3><img src="${img2}"></div>
+    </div>
+    <table>
+      <thead><tr style="background:#2c3e50;color:white"><th style="padding:10px 12px;text-align:left">Descrição</th><th style="padding:10px 12px;text-align:left">Categoria</th><th style="padding:10px 12px;text-align:right">Valor</th></tr></thead>
+      <tbody>${rowsHtml}</tbody>
+      <tfoot><tr class="total-row"><td colspan="2" style="padding:12px">TOTAL GERAL</td><td style="padding:12px;text-align:right">${fmtBRL(total)}</td></tr></tfoot>
+    </table>
+    
+
+
+<script>
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>{
+    // Funciona tanto em Firebase (/) quanto GitHub Pages (/gastos-xpro/)
+    const swPath = location.pathname.replace(/\/[^\/]*$/, '/') + 'sw.js';
+    navigator.serviceWorker.register(swPath, {scope: location.pathname.replace(/\/[^\/]*$/, '/')})
+      .then(()=>console.log('SW registrado'))
+      .catch(e=>console.log('SW erro:',e));
+  });
+}
+</script>
+</body></html>`;
+
+    const w=window.open('','_blank','width=900,height=700');
+    if(w){w.document.write(html);w.document.close();setTimeout(()=>w.print(),800);}
+    else showToast('⚠️ Permita popups para gerar o PDF','#e74c3c');
+  },300);
+}
+
+// ── Export Text ────────────────────────────────────────────
+function exportText(){
+  const key=getWeekKey(),items=appData.weeks[key]||[];
+  if(items.length===0){showToast('⚠️ Nenhum item','#e74c3c');return}
+  const label=getWeekLabel(key);
+  let txt=`Gastos ${label}\n\n`;
+  const byCat={};
+  items.forEach(i=>{if(!byCat[i.cat])byCat[i.cat]=[];byCat[i.cat].push(i)});
+  Object.entries(byCat).forEach(([cat,citems])=>{
+    txt+=`${cat}:\n`;
+    citems.forEach(i=>txt+=`${i.desc} ${i.valor.toFixed(2).replace('.',',')}\n`);
+    txt+='\n';
+  });
+  txt+=`Total: ${fmtBRL(items.reduce((s,i)=>s+i.valor,0))}`;
+  navigator.clipboard.writeText(txt).then(()=>showToast('📋 Copiado para o Claude!')).catch(()=>{const ta=document.createElement('textarea');ta.value=txt;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);showToast('📋 Copiado!')});
+}
+
+function exportCSV(){
+  let csv='Semana,Categoria,Descrição,Valor\n';
+  Object.entries(appData.weeks).forEach(([key,items])=>{
+    const label=getWeekLabel(key);
+    items.forEach(i=>csv+=`"${label}","${i.cat}","${i.desc}","${i.valor.toFixed(2)}"\n`);
+  });
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'}));a.download='gastos_xpro33.csv';a.click();showToast('⬇️ CSV baixado!');
+}
+
+function clearWeek(){
+  if(!confirm('Remover todos os lançamentos desta semana?'))return;
+  delete appData.weeks[getWeekKey()];
+  saveData(appData);renderItems();renderSummary();showToast('🗑️ Semana limpa','#e74c3c');
+}
+
+// ── Tabs ───────────────────────────────────────────────────
+function switchTab(page,el){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('page-'+page).classList.add('active');
+  if(page==='resumo')renderSummary();
+  if(page==='historico')renderHistory();
+}
+
+// ── Week Modal ─────────────────────────────────────────────
+function openWeekModal(){document.getElementById('modalWeekStart').value=document.getElementById('weekStart').value;document.getElementById('modalWeekEnd').value=document.getElementById('weekEnd').value;document.getElementById('weekModal').classList.add('open')}
+function closeWeekModal(){document.getElementById('weekModal').classList.remove('open')}
+function applyWeek(){const s=document.getElementById('modalWeekStart').value,e=document.getElementById('modalWeekEnd').value;if(!s||!e){showToast('⚠️ Informe as datas','#e74c3c');return}document.getElementById('weekStart').value=s;document.getElementById('weekEnd').value=e;updateWeekLabel();closeWeekModal()}
+
+document.addEventListener('keydown',e=>{if(e.key==='Enter'&&document.getElementById('page-lancamento').classList.contains('active'))addItem()});
+
+initDates();
+</script>
+
+
+
+<script>
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>{
+    // Funciona tanto em Firebase (/) quanto GitHub Pages (/gastos-xpro/)
+    const swPath = location.pathname.replace(/\/[^\/]*$/, '/') + 'sw.js';
+    navigator.serviceWorker.register(swPath, {scope: location.pathname.replace(/\/[^\/]*$/, '/')})
+      .then(()=>console.log('SW registrado'))
+      .catch(e=>console.log('SW erro:',e));
+  });
+}
+</script>
+</body>
+</html>
